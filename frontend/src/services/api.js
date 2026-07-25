@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api', timeout: 10000 });
+const BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
+
+const api = axios.create({ baseURL: BASE, timeout: 10000 });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('sy_token');
@@ -14,7 +18,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('sy_token');
       localStorage.removeItem('sy_user');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
     return Promise.reject(err.response?.data || err);
   }
