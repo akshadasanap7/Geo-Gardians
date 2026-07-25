@@ -1,7 +1,8 @@
-import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import { startSyncWatcher } from '../services/syncEngine';
 import { getPendingCount } from '../services/db';
+import api from '../services/api';
 
 const AppContext = createContext(null);
 
@@ -38,7 +39,27 @@ function reducer(state, action) {
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [authChecked, setAuthChecked] = useState(false);
   const socketRef = useRef(null);
+
+  // verify saved token on app start
+  useEffect(() => {
+    async function verifyToken() {
+      const token = localStorage.getItem('sy_token');
+      if (!token) { setAuthChecked(true); return; }
+      try {
+        const data = await api.get('/auth/me');
+        dispatch({ type: 'LOGIN', token, user: data.user });
+      } catch {
+        localStorage.removeItem('sy_token');
+        localStorage.removeItem('sy_user');
+        dispatch({ type: 'LOGOUT' });
+      } finally {
+        setAuthChecked(true);
+      }
+    }
+    verifyToken();
+  }, []);
 
   // sync watcher
   useEffect(() => {
@@ -67,6 +88,14 @@ export function AppProvider({ children }) {
 
     return () => socket.disconnect();
   }, [state.token]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-sy-bg flex items-center justify-center">
+        <div className="text-sy-accent text-2xl font-black animate-pulse">🛡️ SafeYatra AI</div>
+      </div>
+    );
+  }
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

@@ -12,18 +12,7 @@ export async function syncPendingData(onProgress) {
   const results = { locations: 0, incidents: 0, failed: 0 };
 
   try {
-    // sync locations
-    const locs = await getPendingLocations();
-    for (const loc of locs) {
-      try {
-        await api.post('/locations', { ...loc, clientId: loc.clientId });
-        await markLocationSynced(loc.clientId);
-        results.locations++;
-        onProgress?.({ type: 'location', clientId: loc.clientId });
-      } catch { results.failed++; }
-    }
-
-    // sync incidents
+    // ── SOS incidents first (highest priority) ────────────────────────────────
     const incs = await getPendingIncidents();
     for (const inc of incs) {
       try {
@@ -31,6 +20,17 @@ export async function syncPendingData(onProgress) {
         await markIncidentSynced(inc.clientId);
         results.incidents++;
         onProgress?.({ type: 'incident', clientId: inc.clientId });
+      } catch { results.failed++; }
+    }
+
+    // ── locations second ──────────────────────────────────────────────────────
+    const locs = await getPendingLocations();
+    for (const loc of locs) {
+      try {
+        await api.post('/locations', { ...loc, clientId: loc.clientId });
+        await markLocationSynced(loc.clientId);
+        results.locations++;
+        onProgress?.({ type: 'location', clientId: loc.clientId });
       } catch { results.failed++; }
     }
   } finally {
@@ -46,10 +46,10 @@ export function startSyncWatcher(onStatusChange, onProgress) {
   const check = async () => {
     const isOnline = navigator.onLine;
     if (isOnline && !wasOnline) {
+      // came back online — sync immediately
       onStatusChange?.('syncing');
-      const results = await syncPendingData(onProgress);
+      await syncPendingData(onProgress);
       onStatusChange?.(navigator.onLine ? 'online' : 'offline');
-      return results;
     }
     wasOnline = isOnline;
     onStatusChange?.(isOnline ? 'online' : 'offline');
@@ -57,9 +57,11 @@ export function startSyncWatcher(onStatusChange, onProgress) {
 
   window.addEventListener('online',  check);
   window.addEventListener('offline', check);
-  const interval = setInterval(check, 15000);
 
-  // initial sync attempt
+  // check every 10s (more aggressive than before)
+  const interval = setInterval(check, 10000);
+
+  // initial sync on load
   if (navigator.onLine) syncPendingData(onProgress);
 
   return () => {

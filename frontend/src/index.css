@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-sy-bg text-sy-text font-sans antialiased; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-sy-bg; }
+  ::-webkit-scrollbar-thumb { @apply bg-sy-border rounded-full; }
+}

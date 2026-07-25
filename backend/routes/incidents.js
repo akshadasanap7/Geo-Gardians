@@ -49,6 +49,44 @@ router.post('/sos', protect, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// POST /api/incidents/alert-escalation — auto escalation when tourist doesn't respond
+router.post('/alert-escalation', protect, async (req, res, next) => {
+  try {
+    const { touristId, riskLevel, riskFactors, message } = req.body;
+    const tourist = await Tourist.findOne({ touristId });
+    if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
+
+    // check no active incident already
+    const existing = await Incident.findOne({ touristId, status: { $nin: ['resolved'] } });
+    if (existing) return res.json({ incident: existing, duplicate: true });
+
+    const incident = await Incident.create({
+      touristId,
+      touristName: tourist.name,
+      type: 'auto-detected',
+      severity: riskLevel === 'CRITICAL' ? 'critical' : 'high',
+      location: tourist.lastLocation
+        ? { latitude: tourist.lastLocation.latitude, longitude: tourist.lastLocation.longitude, timestamp: new Date() }
+        : undefined,
+      riskScore: tourist.latestRiskScore,
+      riskLevel,
+      riskFactors,
+      zoneInfo: tourist.zoneInfo,
+      message: message || `Tourist did not respond to HIGH RISK alert. Risk: ${riskLevel}.`,
+      timeline: [
+        { status: 'detected',  note: 'AI risk alert triggered', actor: 'system' },
+        { status: 'alerted',   note: 'Tourist was notified but did not respond within 60s', actor: 'system' },
+      ]
+    });
+
+    tourist.status = 'high-risk';
+    await tourist.save();
+
+    if (req.io) req.io.emit('incident:new', incident);
+    res.status(201).json({ incident });
+  } catch (err) { next(err); }
+});
+
 // GET /api/incidents
 router.get('/', protect, async (req, res, next) => {
   try {
