@@ -2,10 +2,13 @@ const router  = require('express').Router();
 const Tourist = require('../models/Tourist');
 const { protect, authorize } = require('../middleware/auth');
 
-// POST /api/tourists — register tourist profile
+// POST /api/tourists — register tourist profile (one per user)
 router.post('/', protect, async (req, res, next) => {
   try {
+    const existing = await Tourist.findOne({ userId: req.user._id });
+    if (existing) return res.status(409).json({ error: 'Tourist profile already exists for this account' });
     const { name, age, phone, emergencyContact, medicalInfo, destination, language } = req.body;
+    if (!name || !destination) return res.status(400).json({ error: 'Name and destination are required' });
     const tourist = await Tourist.create({
       userId: req.user._id,
       name, age, phone, emergencyContact, medicalInfo, destination,
