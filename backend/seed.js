@@ -3,38 +3,44 @@ const mongoose = require('mongoose');
 const User     = require('./models/User');
 const Geofence = require('./models/Geofence');
 
+const USERS = [
+  { name: 'Admin User',      email: 'admin@safeyatra.com',   password: 'admin123', role: 'admin' },
+  { name: 'Authority User',  email: 'auth@safeyatra.com',    password: 'auth123',  role: 'authority' },
+  { name: 'Responder User',  email: 'resp@safeyatra.com',    password: 'resp123',  role: 'responder' },
+  { name: 'Demo Tourist',    email: 'tourist@safeyatra.com', password: 'tour123',  role: 'tourist' },
+];
+
 const ZONES = [
-  { name: 'Hotel Zone',        type: 'safe',       latitude: 20.0059, longitude: 73.7897, radius: 0.04, description: 'Tourist hotel area', instructions: 'You are in a safe zone.' },
-  { name: 'Crowded Market',    type: 'caution',    latitude: 20.0082, longitude: 73.7950, radius: 0.03, description: 'High foot traffic area', instructions: 'Stay alert and keep valuables secure.' },
-  { name: 'Landslide Prone',   type: 'danger',     latitude: 20.0105, longitude: 73.8010, radius: 0.025, description: 'Landslide risk zone', instructions: 'Move to safety immediately.' },
-  { name: 'Flood Zone',        type: 'danger',     latitude: 20.0130, longitude: 73.7960, radius: 0.02, description: 'Flood-prone low-lying area', instructions: 'Evacuate immediately during rain.' },
-  { name: 'Military Boundary', type: 'restricted', latitude: 20.0150, longitude: 73.8050, radius: 0.015, description: 'Restricted military area', instructions: 'Entry strictly prohibited.' }
+  { name: 'Hotel Zone',       type: 'safe',       latitude: 20.0059, longitude: 73.7897, radius: 0.04, isActive: true, instructions: 'Safe accommodation area.' },
+  { name: 'Crowded Market',   type: 'caution',    latitude: 20.0082, longitude: 73.7950, radius: 0.03, isActive: true, instructions: 'Stay alert. Pickpocket risk.' },
+  { name: 'Landslide Prone',  type: 'danger',     latitude: 20.0105, longitude: 73.8010, radius: 0.025, isActive: true, instructions: 'Move to safety immediately.' },
+  { name: 'Forest Reserve',   type: 'restricted', latitude: 20.0120, longitude: 73.7870, radius: 0.02, isActive: true, instructions: 'Entry not permitted.' },
 ];
 
 async function seed() {
-  await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/safeyatra');
+  await mongoose.connect(process.env.MONGO_URI);
+  console.log('Connected to MongoDB');
 
-  // admin user
-  const existing = await User.findOne({ email: 'admin@safeyatra.ai' });
-  if (!existing) {
-    await User.create({ name: 'SafeYatra Admin', email: 'admin@safeyatra.ai', password: 'Admin@1234', role: 'admin' });
-    console.log('✅ Admin user created: admin@safeyatra.ai / Admin@1234');
+  for (const u of USERS) {
+    const exists = await User.findOne({ email: u.email });
+    if (!exists) {
+      await User.create(u);
+      console.log(`✅ Created user: ${u.email} (${u.role})`);
+    } else {
+      console.log(`⏭  User exists: ${u.email}`);
+    }
   }
 
-  // authority user
-  const auth = await User.findOne({ email: 'authority@safeyatra.ai' });
-  if (!auth) {
-    await User.create({ name: 'District Authority', email: 'authority@safeyatra.ai', password: 'Auth@1234', role: 'authority' });
-    console.log('✅ Authority user created: authority@safeyatra.ai / Auth@1234');
+  const zoneCount = await Geofence.countDocuments();
+  if (zoneCount === 0) {
+    await Geofence.insertMany(ZONES);
+    console.log(`✅ Seeded ${ZONES.length} geo-fence zones`);
+  } else {
+    console.log(`⏭  Zones already exist (${zoneCount})`);
   }
-
-  // zones
-  await Geofence.deleteMany({});
-  await Geofence.insertMany(ZONES);
-  console.log(`✅ ${ZONES.length} geofence zones seeded`);
 
   await mongoose.disconnect();
-  console.log('✅ Seed complete');
+  console.log('Done.');
 }
 
 seed().catch((err) => { console.error(err); process.exit(1); });
