@@ -23,9 +23,12 @@ const zoneForm        = document.getElementById('zone-form');
 const zoneListEl      = document.getElementById('zone-list');
 const riskPanel       = document.getElementById('risk-panel');
 
-// ── CSRF token (simple per-session token sent as header) ──────────────────────
-const CSRF_TOKEN = Array.from(crypto.getRandomValues(new Uint8Array(16)))
-  .map((b) => b.toString(16).padStart(2, '0')).join('');
+// ── CSRF token (fetched from server on boot) ─────────────────────────────────
+let CSRF_TOKEN = null;
+async function initCsrfToken() {
+  const data = await fetch('/api/csrf-token').then((r) => r.json());
+  CSRF_TOKEN = data.csrfToken;
+}
 
 // ── API helper ────────────────────────────────────────────────────────────────
 const ALLOWED_API_PREFIX = '/api/';
@@ -521,9 +524,13 @@ async function refresh() {
 }
 
 // ── boot ──────────────────────────────────────────────────────────────────────
-refresh().catch(() => {
-  document.querySelector('.app-shell').innerHTML =
-    '<div class="panel"><h2>Server unavailable</h2><p>Start the backend with <code>node server.js</code>.</p></div>';
-});
+initCsrfToken()
+  .then(() => refresh())
+  .catch(() => {
+    document.querySelector('.app-shell').innerHTML =
+      '<div class="panel"><h2>Server unavailable</h2><p>Start the backend with <code>node server.js</code>.</p></div>';
+  });
 
+// re-fetch CSRF token every 10 min, refresh data every 12 sec
+setInterval(initCsrfToken, 10 * 60 * 1000);
 setInterval(refresh, 12000);

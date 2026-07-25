@@ -165,16 +165,40 @@ function getTimestamp() {
 
 ensureDataFiles();
 
+const CSRF_TOKENS = new Set();
+
+function generateCsrfToken() {
+  const token = crypto.randomBytes(32).toString('hex');
+  CSRF_TOKENS.add(token);
+  return token;
+}
+
+const ALLOWED_ORIGIN = `http://localhost:${PORT}`;
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
 const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 app.use(express.static(PUBLIC_DIR));
+
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: generateCsrfToken() });
+});
+
+app.use((req, res, next) => {
+  if (!MUTATING_METHODS.has(req.method)) return next();
+  const token = req.headers['x-csrf-token'];
+  if (!token || !CSRF_TOKENS.has(token)) {
+    return res.status(403).json({ error: 'Invalid or missing CSRF token' });
+  }
+  next();
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'SafeYatra AI backend is running' });
