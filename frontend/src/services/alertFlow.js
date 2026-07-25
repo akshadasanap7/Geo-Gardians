@@ -39,15 +39,13 @@ async function escalate(tourist, riskLevel, riskFactors, onStateChange) {
 
   const steps = [];
 
-  // Step 1 — SMS to emergency contact (simulated — backend handles real SMS)
+  // Step 1 — SMS to emergency contact + auto-escalation incident
   try {
-    await api.post('/incidents/sos', {
-      touristId:  tourist.touristId,
-      latitude:   tourist.lastLocation?.latitude,
-      longitude:  tourist.lastLocation?.longitude,
-      message:    `⚠️ HIGH RISK ALERT: ${tourist.name} did not respond to safety check. Risk: ${riskLevel}. Factors: ${riskFactors?.join(', ')}. Immediate assistance required.`,
-      channel:    'auto-escalation',
-      riskLevel
+    await api.post('/incidents/alert-escalation', {
+      touristId:   tourist.touristId,
+      riskLevel,
+      riskFactors,
+      message: `Tourist did not respond to HIGH RISK alert. Risk: ${riskLevel}. Factors: ${riskFactors?.join(', ')}.`
     });
     steps.push({ label: 'SMS sent to emergency contact', status: 'success' });
   } catch {
