@@ -28,7 +28,11 @@ const CSRF_TOKEN = Array.from(crypto.getRandomValues(new Uint8Array(16)))
   .map((b) => b.toString(16).padStart(2, '0')).join('');
 
 // ── API helper ────────────────────────────────────────────────────────────────
+const ALLOWED_API_PREFIX = '/api/';
 async function api(path, options = {}) {
+  if (!path.startsWith(ALLOWED_API_PREFIX)) {
+    throw new Error(`Blocked request to disallowed path: ${path}`);
+  }
   const isWrite = options.method && options.method !== 'GET';
   const res = await fetch(path, {
     headers: {
