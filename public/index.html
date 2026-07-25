@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SafeYatra AI</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <div id="weather-banner" class="weather-banner hidden"></div>
+
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Smart Tourist Safety Monitoring &amp; Incident Response System</p>
+          <h1>SafeYatra AI</h1>
+          <p class="subtitle">Real-time alerts, geo-fencing, AI risk scoring, and emergency response in one command center.</p>
+        </div>
+        <div class="hero-card">
+          <h2>Live Ops Snapshot</h2>
+          <div id="dashboard-stats" class="stats-grid"></div>
+        </div>
+      </header>
+
+      <main class="content-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Tourist Registration</h2>
+            <p>Create a digital tourist ID and begin monitoring.</p>
+          </div>
+          <form id="register-form" class="stacked-form">
+            <input name="name" placeholder="Full name" required />
+            <input name="age" placeholder="Age" />
+            <input name="phone" placeholder="Phone number" required />
+            <input name="emergencyContact" placeholder="Emergency contact" required />
+            <input name="destination" placeholder="Travel destination" required />
+            <textarea name="medicalInfo" placeholder="Medical information (optional)"></textarea>
+            <p class="privacy-note">Sensitive details are hashed locally and never exposed through public blockchain-style records.</p>
+            <button type="submit">Register Tourist</button>
+          </form>
+          <div id="tourist-card" class="tourist-card"></div>
+          <div id="verify-result" class="tourist-card"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Demo Safety Console</h2>
+            <p>Simulate location updates and trigger SOS in real time.</p>
+          </div>
+          <div class="action-row">
+            <button id="simulate-route">▶ Simulate Risk Route</button>
+            <button id="trigger-sos" class="sos-btn">🚨 SOS Emergency</button>
+          </div>
+          <div id="alert-notice" class="tourist-card"></div>
+          <div class="map-card">
+            <div class="map-legend">
+              <span class="safe">Safe Zone</span>
+              <span class="caution">Caution Zone</span>
+              <span class="danger">Danger Zone</span>
+              <span class="tourist-legend">Tourist</span>
+            </div>
+            <div id="map-view" class="map-view">
+              <svg id="zone-svg" class="zone-svg" viewBox="0 0 600 300" preserveAspectRatio="none"></svg>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <section class="content-grid lower-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Tourist Directory</h2>
+            <p>View digital IDs, current status, and last known location.</p>
+          </div>
+          <div id="tourist-list" class="table-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Authority Dashboard</h2>
+            <p>Monitor incidents and assign responders.</p>
+          </div>
+          <div id="incident-list" class="incident-list"></div>
+        </section>
+      </section>
+
+      <section class="content-grid lower-grid">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Geo-Fence Zone Manager</h2>
+            <p>Add or remove monitored zones.</p>
+          </div>
+          <form id="zone-form" class="stacked-form zone-form">
+            <input name="name" placeholder="Zone name" required />
+            <select name="type">
+              <option value="safe">Safe</option>
+              <option value="caution">Caution</option>
+              <option value="danger">Danger</option>
+            </select>
+            <div class="coord-row">
+              <input name="latitude" placeholder="Latitude" type="number" step="any" required />
+              <input name="longitude" placeholder="Longitude" type="number" step="any" required />
+              <input name="radius" placeholder="Radius (km)" type="number" step="any" value="0.03" required />
+            </div>
+            <button type="submit">Add Zone</button>
+          </form>
+          <div id="zone-list" class="table-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>AI Risk Analysis</h2>
+            <p>Risk factors and prediction breakdown for selected tourist.</p>
+          </div>
+          <div id="risk-panel" class="risk-panel"></div>
+        </section>
+      </section>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>
