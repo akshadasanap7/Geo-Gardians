@@ -28,6 +28,7 @@ let CSRF_TOKEN = null;
 async function initCsrfToken() {
   const data = await fetch('/api/csrf-token').then((r) => r.json());
   CSRF_TOKEN = data.csrfToken;
+  registerForm.querySelector('button[type="submit"]').disabled = false;
 }
 
 // ── API helper ────────────────────────────────────────────────────────────────
@@ -413,9 +414,11 @@ registerForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const payload = Object.fromEntries(new FormData(registerForm).entries());
   const tourist = await api('/api/tourists', { method: 'POST', body: JSON.stringify(payload) });
+  if (tourist.error) { notify(tourist.error, 'warn'); return; }
   state.tourists.push(tourist);
   state.selectedTouristId = tourist.id;
   state.routeHistory[tourist.id] = [];
+  registerForm.reset();
   renderTourists();
   renderTouristCard();
   renderMap();

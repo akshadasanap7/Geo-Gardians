@@ -2,12 +2,13 @@ import { useState } from 'react';
 import api from '../services/api';
 import { useApp } from '../store/AppContext';
 
-export default function LoginPage() {
+export default function LoginPage({ onBack }) {
   const { dispatch } = useApp();
-  const [tab, setTab]       = useState('login');
-  const [form, setForm]     = useState({ name: '', email: '', password: '', role: 'tourist' });
-  const [error, setError]   = useState('');
+  const [tab, setTab]         = useState('login');
+  const [form, setForm]       = useState({ name: '', email: '', password: '', role: 'tourist' });
+  const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+  const [welcome, setWelcome] = useState(null); // { name, role }
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -20,7 +21,8 @@ export default function LoginPage() {
         ? { email: form.email, password: form.password }
         : { name: form.name, email: form.email, password: form.password, role: form.role };
       const data = await api.post(endpoint, payload);
-      dispatch({ type: 'LOGIN', token: data.token, user: data.user });
+      setWelcome({ name: data.user.name, role: data.user.role });
+      setTimeout(() => dispatch({ type: 'LOGIN', token: data.token, user: data.user }), 1800);
     } catch (err) {
       setError(err?.error || 'Something went wrong');
     } finally {
@@ -30,9 +32,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-sy-bg px-4">
+      {/* Welcome toast */}
+      {welcome && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-sy-accent text-sy-bg px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm animate-slide-up flex items-center gap-2">
+          ✅ Welcome, {welcome.name}! Logged in as <span className="capitalize">{welcome.role}</span>
+        </div>
+      )}
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
+          {onBack && (
+            <button onClick={onBack} className="text-xs text-sy-muted hover:text-sy-accent mb-4 flex items-center gap-1 mx-auto transition-colors">
+              ← Back to Home
+            </button>
+          )}
           <div className="text-4xl mb-2">🛡️</div>
           <h1 className="text-3xl font-black text-sy-accent">SafeYatra AI</h1>
           <p className="text-sy-muted text-sm mt-1">Smart Tourist Safety Monitoring</p>

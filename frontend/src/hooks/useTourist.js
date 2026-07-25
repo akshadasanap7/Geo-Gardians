@@ -17,7 +17,7 @@ export function useTourist() {
     async function load() {
       try {
         const [tourists, z] = await Promise.all([api.get('/tourists'), api.get('/geofences')]);
-        const mine = tourists[0] || null;
+        const mine = tourists.find((t) => t.userId === state.user?.id) || tourists[0] || null;
         if (mine) { setTourist(mine); await cacheTourist(mine); }
         else {
           const cached = await getCachedTourist(state.user?.id);

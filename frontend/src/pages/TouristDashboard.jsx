@@ -16,6 +16,11 @@ export default function TouristDashboard() {
   const [weather, setWeather] = useState('clear');
   const [regError, setRegError] = useState('');
   const [tab, setTab] = useState('map');
+
+  // auto-switch to ID tab so new tourists see the registration form
+  useEffect(() => {
+    if (!loading && !tourist) setTab('id');
+  }, [loading, tourist]);
   const [alert, setAlert] = useState(null);   // null | { riskLevel, riskFactors }
   const prevRiskRef = useRef('LOW');
 
@@ -36,8 +41,14 @@ export default function TouristDashboard() {
   async function handleRegister(e) {
     e.preventDefault();
     setRegError('');
-    try { await registerTourist({ ...regForm, weather }); }
-    catch (err) { setRegError(err?.error || 'Registration failed'); }
+    try {
+      await registerTourist({ ...regForm, weather });
+      setRegForm({ name: '', age: '', phone: '', emergencyContact: '', destination: '', medicalInfo: '' });
+    }
+    catch (err) {
+      const msg = err?.error || err?.message || 'Registration failed';
+      setRegError(msg === 'Tourist profile already exists for this account' ? 'You already have a tourist profile.' : msg);
+    }
   }
 
   function dismissAlert() { setAlert(null); }

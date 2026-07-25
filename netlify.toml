@@ -1,7 +1,6 @@
 [build]
-  base    = "frontend"
-  command = "npm install && npm run build"
-  publish = "dist"
+  command = "echo 'No build needed'"
+  publish = "public"
 
 [build.environment]
   NODE_VERSION = "20"
