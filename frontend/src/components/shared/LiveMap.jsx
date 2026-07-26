@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Circle, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -15,7 +15,7 @@ export default function LiveMap({ tourists = [], zones = [], incidents = [], cen
   const defaultCenter = center || [20.0082, 73.7950];
 
   return (
-    <div style={{ height }} className="rounded-xl overflow-hidden border border-sy-border">
+    <div style={{ height }} className="overflow-hidden border border-sy-border">
       <MapContainer center={defaultCenter} zoom={14} style={{ height: '100%', width: '100%' }}
         className="z-0" attributionControl={false}>
         <TileLayer
