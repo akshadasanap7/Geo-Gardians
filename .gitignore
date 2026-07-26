@@ -3,3 +3,6 @@ node_modules/
 npm-debug.log*
 .env
 data/
+
+# AI Code Review temporary files
+.ai-code-review/
