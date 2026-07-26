@@ -4,7 +4,7 @@ import { useApp } from '../../store/AppContext';
 
 export default function DemoControlPanel() {
   const { state, simulateNetworkLoss, restoreNetwork, simulateMovement, enterDangerZone, simulateHighRisk, triggerSOS, resolveLatestIncident } = useApp();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const isOffline = state.networkStatus === 'offline';
 
   return (

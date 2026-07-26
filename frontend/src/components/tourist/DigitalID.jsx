@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BadgeCheck, Copy, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, ShieldCheck } from 'lucide-react';
 
 function QRGrid({ code }) {
   const chars = (code + code + code).slice(0, 49);
