@@ -1,211 +1,37 @@
 import { useState } from 'react';
+import { ArrowDownRight, ArrowRight, BadgeCheck, BellRing, BrainCircuit, CloudOff, Crosshair, Database, Globe2, MapPinned, Radio, Route, ShieldCheck, Siren, Sparkles, Wifi } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import PublicLayout from '../components/shared/PublicLayout';
+import { StatusPill } from '../components/shared/Primitives';
 
-const FLOW_STEPS = [
-  { icon: '🧳', label: 'Tourist Starts Journey' },
-  { icon: '📡', label: 'GPS Tracking' },
-  { icon: '🗺️', label: 'Geo-Fence Detection' },
-  { icon: '🧠', label: 'AI Risk Analysis' },
-  { icon: '⚠️', label: 'High Risk?' },
-  { icon: '🔔', label: 'Alert Tourist' },
-  { icon: '📵', label: 'No Response?' },
-  { icon: '📩', label: 'Emergency Contact SMS' },
-  { icon: '👮', label: 'Authority Alert' },
-  { icon: '🚑', label: 'Responder Assigned' },
-  { icon: '✅', label: 'Incident Resolved' },
+const flow = [
+  { step: '01', title: 'Detect', copy: 'GPS, geo-fences and local signals watch the journey continuously.', icon: Crosshair },
+  { step: '02', title: 'Warn', copy: 'The tourist receives a calm, actionable safety prompt.', icon: BellRing },
+  { step: '03', title: 'Analyze', copy: 'AI combines movement, weather, time and zone context.', icon: BrainCircuit },
+  { step: '04', title: 'Escalate', copy: 'SOS and no-response paths notify the right people.', icon: Siren },
+  { step: '05', title: 'Verify', copy: 'A privacy-safe Digital ID confirms identity in seconds.', icon: BadgeCheck },
+  { step: '06', title: 'Sync', copy: 'Offline events reconcile automatically when the network returns.', icon: Database }
 ];
 
-const INTERFACES = [
-  {
-    icon: '📱', title: 'Tourist App', color: 'border-sy-accent',
-    features: ['Risk score & AI analysis', 'Live GPS location', 'One-tap SOS', 'Blockchain Digital ID', 'Safety alerts', 'Offline status'],
-  },
-  {
-    icon: '🚨', title: 'Authority Command Center', color: 'border-sy-blue',
-    features: ['Live map with danger zones', 'High-risk tourist list', 'Active emergencies', 'Geo-fence management', 'Incident management'],
-  },
-  {
-    icon: '🧑‍🚒', title: 'Emergency Responder', color: 'border-amber-500',
-    features: ['Assigned incidents', 'Tourist last location', 'Risk reason & factors', 'Navigation assist', 'Update incident status'],
-  },
+const pillars = [
+  { title: 'Local by default', copy: 'GPS, geo-fencing, risk calculation and SOS creation continue when cloud access disappears.', icon: CloudOff, tone: 'caution' },
+  { title: 'Designed for response', copy: 'Authority and responder views turn a signal into a coordinated, auditable action.', icon: Radio, tone: 'blue' },
+  { title: 'Identity without exposure', copy: 'Verify the hash, not the sensitive profile. Digital ID is built for trust at the edge.', icon: ShieldCheck, tone: 'safe' }
 ];
 
-const BLOCKCHAIN_STEPS = [
-  'Tourist Registration', 'Generate Tourist ID', 'Generate Identity Hash',
-  'Store Hash on Blockchain', 'Generate QR Code', 'Authority Scans QR', 'Identity Verified ✓',
-];
+export default function LandingPage() {
+  const [live, setLive] = useState(false);
+  return <PublicLayout>
+    <main>
+      <section className="relative border-b border-sy-border"><div className="absolute inset-0 sy-grid opacity-30" /><div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8 lg:py-28"><div><div className="mb-7 flex flex-wrap items-center gap-3"><StatusPill tone="safe" icon={Wifi}>System operational</StatusPill><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">Nashik safety network · 08:42 UTC</span></div><h1 className="max-w-3xl text-5xl font-extrabold leading-[0.98] tracking-[-0.05em] text-white sm:text-7xl">Travel freely.<br /><span className="text-sy-accent">Stay protected.</span></h1><p className="mt-7 max-w-xl text-base leading-7 text-white/58 sm:text-lg">SafeYatra AI detects risk before emergencies become disasters — connecting tourists, authorities and responders through one resilient safety network.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link to="/login" className="inline-flex min-h-12 items-center justify-center gap-2 bg-sy-accent px-5 text-sm font-extrabold text-sy-bg transition hover:bg-white">Start safe journey <ArrowRight size={16} /></Link><Link to="/login?role=authority" className="inline-flex min-h-12 items-center justify-center gap-2 border border-sy-border px-5 text-sm font-bold text-white transition hover:border-sy-accent/50 hover:bg-white/[0.04]">Explore command center <MapPinned size={16} /></Link></div><div className="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-sy-border pt-5"><div><p className="font-mono text-2xl font-bold text-white">1,250</p><p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-white/40">tourists monitored</p></div><div><p className="font-mono text-2xl font-bold text-sy-accent">18ms</p><p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-white/40">risk refresh</p></div><div><p className="font-mono text-2xl font-bold text-white">99.2%</p><p className="mt-1 text-[10px] uppercase tracking-[0.1em] text-white/40">sync reliability</p></div></div></div><div className="relative"><div className="border border-sy-border bg-sy-panel p-3 shadow-2xl"><div className="flex items-center justify-between border-b border-sy-border px-3 pb-3"><div><p className="sy-label text-sy-accent">Live safety visualization</p><p className="mt-1 text-sm font-bold text-white">Nashik region / command preview</p></div><span className="font-mono text-[10px] text-white/40">LIVE • 08:42:18</span></div><div className="relative mt-3 min-h-[330px] overflow-hidden border border-sy-border bg-[#0b2330] sy-grid"><div className="absolute inset-0 opacity-50" style={{ background: 'radial-gradient(circle at 50% 45%, rgba(18,199,160,.22), transparent 28%), linear-gradient(135deg, transparent 40%, rgba(79,140,255,.1) 40%, transparent 41%)' }} /><div className="absolute left-[15%] top-[22%] h-28 w-28 rounded-full border border-sy-success/60 bg-sy-success/10" /><div className="absolute left-[55%] top-[36%] h-36 w-36 rounded-full border border-sy-warning/60 bg-sy-warning/10" /><div className="absolute right-[12%] top-[17%] h-24 w-24 rounded-full border border-sy-critical/70 bg-sy-critical/15" /><div className="absolute left-[35%] top-[48%] h-3 w-3 rounded-full bg-sy-accent shadow-[0_0_0_8px_rgba(18,199,160,.14)]" /><div className="absolute right-[23%] top-[30%] h-3 w-3 rounded-full bg-sy-critical shadow-[0_0_0_8px_rgba(239,91,91,.15)]" /><div className="absolute bottom-4 left-4 right-4 grid grid-cols-3 gap-2"><div className="border border-sy-border bg-sy-bg/80 p-3"><p className="sy-label">Current tourist</p><p className="mt-2 font-mono text-sm text-white">SY-1001</p><p className="mt-1 text-xs text-white/45">19.9322, 73.5304</p></div><div className="border border-sy-border bg-sy-bg/80 p-3"><p className="sy-label">AI risk</p><p className="mt-2 font-mono text-sm text-sy-accent">18% / SAFE</p><p className="mt-1 text-xs text-white/45">No intervention</p></div><div className="border border-red-300/30 bg-sy-bg/80 p-3"><p className="sy-label text-red-200">Attention</p><p className="mt-2 font-mono text-sm text-red-100">INC-001</p><p className="mt-1 text-xs text-white/45">Responder pending</p></div></div></div><div className="mt-3 flex items-center justify-between gap-4 border-t border-sy-border pt-3"><span className="flex items-center gap-2 text-xs text-white/55"><span className="h-2 w-2 rounded-full bg-sy-accent animate-pulse" /> Live GPS active</span><button onClick={() => setLive((value) => !value)} className="text-xs font-bold text-sy-accent hover:text-white">{live ? 'Hide signal details' : 'Inspect signal'} <ArrowDownRight size={13} className="inline" /></button></div>{live && <div className="mt-3 border border-sy-accent/30 bg-sy-accent/[0.05] p-3 font-mono text-[10px] text-sy-accent animate-fade-in">[08:42:18] location:update · [08:42:17] risk:score=18 · [08:42:12] geofence:SAFE · [08:42:02] sync:healthy</div>}</div></div></div></section>
 
-export default function LandingPage({ onGetStarted }) {
-  const [smsDemo, setSmsDemo] = useState(false);
+      <section id="platform" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="max-w-2xl"><p className="sy-label text-sy-accent">One safety loop</p><h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">From a quiet signal to a coordinated response.</h2><p className="mt-4 text-sm leading-6 text-white/55">Most emergencies do not start with an SOS button. SafeYatra watches the small changes first, then gives every role the context to act.</p></div><div className="mt-10 grid gap-px overflow-hidden border border-sy-border bg-sy-border md:grid-cols-3 lg:grid-cols-6">{flow.map(({ step, title, copy, icon: Icon }) => <div key={step} className="bg-sy-bg p-5"><span className="font-mono text-[10px] text-sy-accent">{step}</span><Icon className="mt-8 text-white/60" size={21} /><h3 className="mt-6 text-sm font-extrabold text-white">{title}</h3><p className="mt-2 text-xs leading-5 text-white/45">{copy}</p></div>)}</div></section>
 
-  return (
-    <div className="min-h-screen bg-sy-bg text-sy-text font-sans">
+      <section className="border-y border-sy-border bg-sy-bg-soft"><div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:px-8 lg:py-24"><div><p className="sy-label text-sy-accent">The differentiator</p><h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">When the network disappears, safety does not.</h2><p className="mt-4 text-sm leading-6 text-white/55">Offline-first is not a fallback screen. It is a local safety system that keeps GPS, geo-fencing, AI risk calculation and SOS creation alive — then reconciles every event when coverage returns.</p><Link to="/how-it-works" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-sy-accent hover:text-white">See the safety architecture <ArrowRight size={15} /></Link></div><div className="grid gap-3 sm:grid-cols-3">{pillars.map(({ title, copy, icon: Icon, tone }) => <div key={title} className="border border-sy-border bg-sy-panel p-5"><Icon size={20} className={tone === 'caution' ? 'text-sy-warning' : tone === 'blue' ? 'text-sy-blue' : 'text-sy-success'} /><h3 className="mt-8 text-sm font-extrabold text-white">{title}</h3><p className="mt-2 text-xs leading-5 text-white/45">{copy}</p></div>)}</div></div></section>
 
-      {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 bg-sy-panel/90 backdrop-blur border-b border-sy-border px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🛡️</span>
-          <span className="text-sy-accent font-black text-lg">SafeYatra AI</span>
-        </div>
-        <button onClick={onGetStarted}
-          className="px-5 py-2 rounded-xl bg-sy-accent text-sy-bg font-bold text-sm hover:opacity-90 transition-opacity">
-          Sign In
-        </button>
-      </nav>
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24"><div className="flex flex-col justify-between gap-5 border-b border-sy-border pb-6 sm:flex-row sm:items-end"><div><p className="sy-label text-sy-accent">Built for every handoff</p><h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white">One platform. Four focused workspaces.</h2></div><span className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/35">Tourist · Authority · Responder · Admin</span></div><div className="mt-8 grid gap-3 md:grid-cols-2 lg:grid-cols-4">{[['Tourist', 'A calm safety companion for every journey.', Route, 'Start with a safe route, one-tap SOS and a verified identity.'], ['Authority', 'A live operational picture for the control room.', Globe2, 'See risk, incidents, zones and sync health in one command center.'], ['Responder', 'The shortest path from dispatch to resolution.', Siren, 'Accept, navigate, update and close the incident with accountability.'], ['Admin', 'The control plane behind the safety network.', Sparkles, 'Manage users, zones, settings and the audit trail.']].map(([title, copy, Icon, detail]) => <div key={title} className="group border border-sy-border bg-sy-card p-5 transition hover:-translate-y-1 hover:border-sy-accent/50"><Icon size={20} className="text-sy-accent" /><p className="mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">{title}</p><h3 className="mt-2 text-base font-extrabold text-white">{copy}</h3><p className="mt-3 text-xs leading-5 text-white/45">{detail}</p></div>)}</div></section>
 
-      {/* ── HERO ── */}
-      <section className="text-center px-6 py-20 max-w-3xl mx-auto">
-        <div className="text-6xl mb-4 animate-pulse">🛡️</div>
-        <h1 className="text-4xl md:text-5xl font-black text-sy-accent leading-tight mb-4">
-          SafeYatra AI
-        </h1>
-        <p className="text-xl text-sy-text font-semibold mb-2">
-          Intelligent Tourist Safety &amp; Emergency Response System
-        </p>
-        <p className="text-sy-muted mb-10 max-w-xl mx-auto">
-          Real-time AI risk scoring, geo-fence alerts, offline-first SOS, and blockchain digital identity — all in one platform.
-        </p>
-        <div className="flex flex-wrap gap-4 justify-center">
-          <button onClick={onGetStarted}
-            className="px-8 py-3 rounded-2xl bg-sy-accent text-sy-bg font-black text-base hover:opacity-90 transition-opacity shadow-lg">
-            🚀 Start Safe Journey
-          </button>
-          <a href="#dashboard"
-            className="px-8 py-3 rounded-2xl border border-sy-accent text-sy-accent font-bold text-base hover:bg-sy-accent/10 transition-colors">
-            📊 Explore Safety Dashboard
-          </a>
-          <button onClick={onGetStarted}
-            className="px-8 py-3 rounded-2xl bg-red-600 text-white font-black text-base hover:bg-red-500 transition-colors shadow-lg">
-            🚨 Emergency SOS
-          </button>
-        </div>
-      </section>
-
-      {/* ── OFFLINE MODE ── */}
-      <section className="px-6 py-16 bg-sy-panel border-y border-sy-border">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl font-black text-sy-accent mb-2">📵 Offline-First Safety</h2>
-          <p className="text-sy-muted mb-10">Safety continues even when the network stops.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              { icon: '📡', title: 'Online', color: 'border-sy-accent text-sy-accent', items: ['Real-time AI Risk Scoring', 'Cloud Alerts', 'Live Authority Dashboard', 'Socket.io Updates'] },
-              { icon: '📵', title: 'Offline', color: 'border-amber-500 text-amber-400', items: ['GPS + Geo-fencing', 'Local AI Risk Engine', 'SOS Queue (IndexedDB)', 'Bluetooth Mesh Broadcast'] },
-              { icon: '🔄', title: 'Network Restored', color: 'border-sy-blue text-sy-blue', items: ['Auto Data Sync', 'Pending SOS Sent', 'Location History Uploaded', 'Incidents Reconciled'] },
-            ].map((col) => (
-              <div key={col.title} className={`bg-sy-card border-2 ${col.color.split(' ')[0]} rounded-2xl p-6`}>
-                <div className="text-3xl mb-2">{col.icon}</div>
-                <h3 className={`font-black text-lg mb-4 ${col.color.split(' ')[1]}`}>{col.title}</h3>
-                <ul className="space-y-2 text-sm text-sy-muted text-left">
-                  {col.items.map((item) => <li key={item} className="flex items-center gap-2"><span className="text-sy-accent">→</span>{item}</li>)}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3 INTERFACES ── */}
-      <section id="dashboard" className="px-6 py-16 max-w-5xl mx-auto">
-        <h2 className="text-2xl font-black text-sy-accent text-center mb-2">3 Dedicated Interfaces</h2>
-        <p className="text-sy-muted text-center mb-10">Each role gets a purpose-built experience.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {INTERFACES.map((iface) => (
-            <div key={iface.title} className={`bg-sy-card border-2 ${iface.color} rounded-2xl p-6`}>
-              <div className="text-3xl mb-2">{iface.icon}</div>
-              <h3 className="font-black text-lg mb-4">{iface.title}</h3>
-              <ul className="space-y-2 text-sm text-sy-muted">
-                {iface.features.map((f) => <li key={f} className="flex items-center gap-2"><span className="text-sy-accent">✓</span>{f}</li>)}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SYSTEM FLOW ── */}
-      <section className="px-6 py-16 bg-sy-panel border-y border-sy-border">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-black text-sy-accent mb-2">🧠 How It Works</h2>
-          <p className="text-sy-muted mb-10">End-to-end automated safety pipeline.</p>
-          <div className="flex flex-col items-center gap-1">
-            {FLOW_STEPS.map((step, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className="flex items-center gap-3 bg-sy-card border border-sy-border rounded-xl px-6 py-3 w-72">
-                  <span className="text-xl">{step.icon}</span>
-                  <span className="font-semibold text-sm">{step.label}</span>
-                </div>
-                {i < FLOW_STEPS.length - 1 && <span className="text-sy-muted text-lg leading-none py-0.5">↓</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SMS ALERT DEMO ── */}
-      <section className="px-6 py-16 max-w-xl mx-auto text-center">
-        <h2 className="text-2xl font-black text-sy-accent mb-2">🚨 Automatic Alert Escalation</h2>
-        <p className="text-sy-muted mb-8">Tourist → Emergency Contact → Authority — fully automated.</p>
-        <button onClick={() => setSmsDemo((v) => !v)}
-          className="mb-6 px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm hover:bg-red-500 transition-colors">
-          {smsDemo ? 'Hide Demo' : '▶ Simulate High Risk Alert'}
-        </button>
-        {smsDemo && (
-          <div className="bg-sy-card border-2 border-red-600 rounded-2xl overflow-hidden animate-slide-up text-left">
-            <div className="bg-red-600 px-5 py-4 text-center">
-              <p className="text-white font-black text-lg">🚨 HIGH RISK DETECTED</p>
-            </div>
-            <div className="p-5 space-y-3 text-sm">
-              <div className="flex justify-between"><span className="text-sy-muted">Tourist</span><span className="font-bold">Rahul Sharma</span></div>
-              <div className="flex justify-between"><span className="text-sy-muted">Risk Score</span><span className="font-black text-red-400">87%</span></div>
-              <div className="flex justify-between"><span className="text-sy-muted">Reason</span><span className="text-amber-400">Danger Zone + Inactivity</span></div>
-              <hr className="border-sy-border" />
-              <div className="flex items-center justify-between bg-sy-panel rounded-xl px-4 py-3">
-                <div>
-                  <p className="font-semibold">📩 Emergency Contact Alert</p>
-                  <p className="text-xs text-sy-muted">SMS to registered contact</p>
-                </div>
-                <span className="text-sy-accent font-black text-xs">SENT ✓</span>
-              </div>
-              <div className="flex items-center justify-between bg-sy-panel rounded-xl px-4 py-3">
-                <div>
-                  <p className="font-semibold">👮 Authority Alert</p>
-                  <p className="text-xs text-sy-muted">Live dashboard notification</p>
-                </div>
-                <span className="text-sy-accent font-black text-xs">RECEIVED ✓</span>
-              </div>
-              <p className="text-xs text-sy-muted text-center pt-1">Real SMS via Twilio/MSG91 API in production. Demo shows simulated notification.</p>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* ── BLOCKCHAIN ID ── */}
-      <section className="px-6 py-16 bg-sy-panel border-y border-sy-border">
-        <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-2xl font-black text-sy-accent mb-2">🔗 Blockchain Digital ID</h2>
-          <p className="text-sy-muted mb-10">Tamper-proof identity verification. Sensitive data stays off-chain.</p>
-          <div className="flex flex-col items-center gap-1">
-            {BLOCKCHAIN_STEPS.map((step, i) => (
-              <div key={i} className="flex flex-col items-center">
-                <div className={`px-6 py-2.5 rounded-xl border text-sm font-semibold w-64 text-center
-                  ${i === BLOCKCHAIN_STEPS.length - 1
-                    ? 'bg-emerald-900/30 border-emerald-600 text-emerald-400'
-                    : 'bg-sy-card border-sy-border text-sy-text'}`}>
-                  {step}
-                </div>
-                {i < BLOCKCHAIN_STEPS.length - 1 && <span className="text-sy-muted text-lg leading-none py-0.5">↓</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FOOTER CTA ── */}
-      <section className="text-center px-6 py-16">
-        <h2 className="text-2xl font-black text-sy-accent mb-4">Ready to travel safely?</h2>
-        <button onClick={onGetStarted}
-          className="px-10 py-4 rounded-2xl bg-sy-accent text-sy-bg font-black text-lg hover:opacity-90 transition-opacity shadow-xl">
-          🚀 Get Started — It's Free
-        </button>
-      </section>
-    </div>
-  );
+      <section className="border-t border-sy-border bg-sy-accent"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 px-4 py-12 sm:px-6 md:flex-row md:items-center lg:px-8"><div><p className="text-xs font-bold uppercase tracking-[0.15em] text-sy-bg/60">Ready for the walkthrough?</p><h2 className="mt-2 text-3xl font-extrabold tracking-tight text-sy-bg">Make the next journey safer.</h2></div><Link to="/login" className="inline-flex min-h-12 items-center justify-center gap-2 bg-sy-bg px-5 text-sm font-extrabold text-white transition hover:bg-white hover:text-sy-bg">Enter demo workspace <ArrowRight size={16} /></Link></div></section>
+    </main>
+  </PublicLayout>;
 }

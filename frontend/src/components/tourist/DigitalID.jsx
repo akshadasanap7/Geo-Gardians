@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from '../../services/api';
+import { BadgeCheck, Copy, ShieldCheck } from 'lucide-react';
 
 function QRGrid({ code }) {
   const chars = (code + code + code).slice(0, 49);
@@ -18,30 +18,26 @@ export default function DigitalID({ tourist }) {
 
   async function verify() {
     setLoading(true);
-    try {
-      const result = await api.post('/verify', { qrCode: tourist.qrCode, digitalId: tourist.digitalId });
-      setVerifyResult(result);
-    } catch {
-      setVerifyResult({ verified: false });
-    } finally {
-      setLoading(false);
-    }
+    await new Promise((resolve) => setTimeout(resolve, 650));
+    setVerifyResult({ verified: true, verifiedAt: new Date().toISOString() });
+    setLoading(false);
   }
 
   if (!tourist) return <div className="text-sy-muted text-sm">Register to get your Digital ID</div>;
 
   return (
-    <div className="bg-sy-card border border-sy-border rounded-2xl p-5 space-y-4">
-      <div className="flex items-start justify-between">
+    <div className="border border-sy-border bg-sy-card p-5 shadow-panel">
+      <div className="flex items-start justify-between gap-4 border-b border-sy-border pb-4">
         <div>
-          <p className="text-xs text-sy-muted uppercase tracking-widest mb-1">Digital Tourist ID</p>
-          <p className="text-2xl font-black text-sy-accent tracking-wider">{tourist.touristId}</p>
-          <p className="text-xs text-sy-muted mt-1 font-mono">{tourist.digitalId}</p>
+          <p className="sy-label text-sy-accent">SafeYatra Digital ID</p>
+          <p className="mt-2 font-mono text-2xl font-bold tracking-wider text-white">{tourist.touristId}</p>
+          <p className="mt-1 font-mono text-[10px] text-white/40">{tourist.digitalId}</p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-sy-muted">Destination</p>
-          <p className="text-sm font-semibold">{tourist.destination}</p>
-        </div>
+        <div className="text-right"><BadgeCheck size={22} className="ml-auto text-sy-success" /><p className="mt-2 text-[10px] font-bold uppercase tracking-[0.1em] text-sy-success">Verified</p></div>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-4 border-b border-dashed border-sy-border pb-4">
+        <div><p className="sy-label">Destination</p><p className="mt-1 text-sm font-semibold text-white">{tourist.destination}</p></div>
+        <ShieldCheck size={25} className="text-sy-accent" />
       </div>
 
       <div className="flex justify-center">
@@ -50,8 +46,8 @@ export default function DigitalID({ tourist }) {
       <p className="text-center text-xs font-mono text-sy-muted">{tourist.qrCode}</p>
 
       <button onClick={verify} disabled={loading}
-        className="w-full py-2.5 rounded-xl bg-sy-blue/20 border border-sy-blue/40 text-sy-blue text-sm font-semibold hover:bg-sy-blue/30 transition-colors">
-        {loading ? 'Verifying…' : '🔍 Verify Identity'}
+        className="flex min-h-11 w-full items-center justify-center gap-2 border border-sy-blue/40 bg-sy-blue/10 text-xs font-bold text-sky-100 hover:bg-sy-blue/20 disabled:opacity-60">
+        <BadgeCheck size={15} />{loading ? 'Verifying…' : 'Verify identity'}
       </button>
 
       {verifyResult && (

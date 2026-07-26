@@ -1,104 +1,38 @@
-import { useState } from 'react';
-import api from '../services/api';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, ArrowRight, CheckCircle2, LockKeyhole, Shield, UserRound } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../store/AppContext';
+import { getDemoAccounts } from '../services/authService';
 
-export default function LoginPage({ onBack }) {
-  const { dispatch } = useApp();
-  const [tab, setTab]         = useState('login');
-  const [form, setForm]       = useState({ name: '', email: '', password: '', role: 'tourist' });
-  const [error, setError]     = useState('');
+const roleCopy = {
+  tourist: 'Your personal safety companion',
+  authority: 'Live control room workspace',
+  responder: 'Dispatch and field response',
+  admin: 'System control plane'
+};
+
+export default function LoginPage({ register = false }) {
+  const { state, login } = useApp();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const queryRole = new URLSearchParams(location.search).get('role');
+  const [mode, setMode] = useState(register ? 'register' : 'login');
+  const [role, setRole] = useState(queryRole || 'tourist');
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [welcome, setWelcome] = useState(null); // { name, role }
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  useEffect(() => { if (state.user) navigate(`/${state.user.role}/dashboard`, { replace: true }); }, [navigate, state.user]);
 
-  async function submit(e) {
-    e.preventDefault();
-    setError(''); setLoading(true);
-    try {
-      const endpoint = tab === 'login' ? '/auth/login' : '/auth/register';
-      const payload  = tab === 'login'
-        ? { email: form.email, password: form.password }
-        : { name: form.name, email: form.email, password: form.password, role: form.role };
-      const data = await api.post(endpoint, payload);
-      setWelcome({ name: data.user.name, role: data.user.role });
-      setTimeout(() => dispatch({ type: 'LOGIN', token: data.token, user: data.user }), 1800);
-    } catch (err) {
-      setError(err?.error || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+  const update = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+  const fillDemo = (account) => { setRole(account.role); setForm({ name: account.name, email: account.email, password: account.password }); setError(''); };
+
+  async function submit(event) {
+    event.preventDefault(); setError(''); setLoading(true);
+    try { const user = await login({ ...form, role, mode }); navigate(`/${user.role}/dashboard`, { replace: true }); }
+    catch (submissionError) { setError(submissionError.message || 'Unable to sign in.'); }
+    finally { setLoading(false); }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-sy-bg px-4">
-      {/* Welcome toast */}
-      {welcome && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-sy-accent text-sy-bg px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm animate-slide-up flex items-center gap-2">
-          ✅ Welcome, {welcome.name}! Logged in as <span className="capitalize">{welcome.role}</span>
-        </div>
-      )}
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          {onBack && (
-            <button onClick={onBack} className="text-xs text-sy-muted hover:text-sy-accent mb-4 flex items-center gap-1 mx-auto transition-colors">
-              ← Back to Home
-            </button>
-          )}
-          <div className="text-4xl mb-2">🛡️</div>
-          <h1 className="text-3xl font-black text-sy-accent">SafeYatra AI</h1>
-          <p className="text-sy-muted text-sm mt-1">Smart Tourist Safety Monitoring</p>
-        </div>
-
-        <div className="bg-sy-card border border-sy-border rounded-2xl p-8 shadow-2xl">
-          {/* Tabs */}
-          <div className="flex rounded-xl bg-sy-panel p-1 mb-6">
-            {['login','register'].map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors capitalize
-                  ${tab === t ? 'bg-sy-accent text-sy-bg' : 'text-sy-muted hover:text-sy-text'}`}>
-                {t}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={submit} className="space-y-4">
-            {tab === 'register' && (
-              <input value={form.name} onChange={set('name')} placeholder="Full name" required
-                className="w-full bg-sy-panel border border-sy-border rounded-xl px-4 py-3 text-sy-text placeholder-sy-muted focus:outline-none focus:border-sy-accent" />
-            )}
-            <input type="email" value={form.email} onChange={set('email')} placeholder="Email address" required
-              className="w-full bg-sy-panel border border-sy-border rounded-xl px-4 py-3 text-sy-text placeholder-sy-muted focus:outline-none focus:border-sy-accent" />
-            <input type="password" value={form.password} onChange={set('password')} placeholder="Password" required
-              className="w-full bg-sy-panel border border-sy-border rounded-xl px-4 py-3 text-sy-text placeholder-sy-muted focus:outline-none focus:border-sy-accent" />
-            {tab === 'register' && (
-              <select value={form.role} onChange={set('role')}
-                className="w-full bg-sy-panel border border-sy-border rounded-xl px-4 py-3 text-sy-text focus:outline-none focus:border-sy-accent">
-                <option value="tourist">Tourist</option>
-                <option value="authority">Authority</option>
-                <option value="responder">Responder</option>
-                <option value="admin">Admin</option>
-              </select>
-            )}
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button type="submit" disabled={loading}
-              className="w-full py-3 rounded-xl bg-sy-accent text-sy-bg font-bold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
-              {loading ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="mt-6 p-4 bg-sy-panel rounded-xl border border-sy-border">
-            <p className="text-xs text-sy-muted font-semibold mb-2">Demo accounts</p>
-            <div className="space-y-1 text-xs text-sy-muted font-mono">
-              <div>admin@safeyatra.com / admin123 (Admin)</div>
-              <div>auth@safeyatra.com / auth123 (Authority)</div>
-              <div>resp@safeyatra.com / resp123 (Responder)</div>
-              <div>tourist@safeyatra.com / tour123 (Tourist)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="min-h-screen bg-sy-bg text-sy-text"><div className="grid min-h-screen lg:grid-cols-[0.92fr_1.08fr]"><section className="relative hidden overflow-hidden border-r border-sy-border bg-sy-bg-soft lg:block"><div className="absolute inset-0 sy-grid opacity-30" /><div className="relative flex h-full flex-col justify-between p-10 xl:p-16"><Link to="/" className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center border border-sy-accent/40 bg-sy-accent/10 text-sy-accent"><Shield size={19} /></span><span className="text-sm font-extrabold text-white">SafeYatra <span className="text-sy-accent">AI</span></span></Link><div><p className="sy-label text-sy-accent">Demo access</p><h1 className="mt-4 max-w-lg text-5xl font-extrabold leading-[1.04] tracking-[-0.04em] text-white">Every role sees the same truth, at the right moment.</h1><p className="mt-6 max-w-md text-sm leading-6 text-white/50">Choose a demo account to explore the complete safety workflow. All actions are simulated locally and can run without a backend.</p><div className="mt-12 grid gap-2">{[['DETECT', 'GPS, zones and movement'], ['RESPOND', 'Authority and responder handoff'], ['SYNC', 'Offline queue reconciliation']].map(([label, copy]) => <div key={label} className="flex items-center gap-4 border-t border-sy-border py-3"><span className="w-16 font-mono text-[10px] text-sy-accent">{label}</span><span className="text-xs text-white/55">{copy}</span></div>)}</div></div><p className="font-mono text-[10px] uppercase tracking-[0.12em] text-white/30">SafeYatra AI · public safety prototype</p></div></section><section className="flex items-center justify-center px-4 py-10 sm:px-6"><div className="w-full max-w-md"><div className="mb-8 flex items-center justify-between lg:hidden"><Link to="/" className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center border border-sy-accent/40 bg-sy-accent/10 text-sy-accent"><Shield size={19} /></span><span className="text-sm font-extrabold text-white">SafeYatra <span className="text-sy-accent">AI</span></span></Link><Link to="/" className="text-white/50"><ArrowLeft size={17} /></Link></div><div className="mb-8"><p className="sy-label text-sy-accent">Secure demo entry</p><h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white">{mode === 'login' ? 'Enter the safety network.' : 'Create a demo workspace.'}</h2><p className="mt-2 text-sm leading-6 text-white/50">{roleCopy[role]}</p></div><div className="mb-6 grid grid-cols-2 border border-sy-border bg-sy-panel p-1"><button onClick={() => setMode('login')} className={`min-h-10 text-xs font-bold ${mode === 'login' ? 'bg-sy-accent text-sy-bg' : 'text-white/50'}`}>Sign in</button><button onClick={() => setMode('register')} className={`min-h-10 text-xs font-bold ${mode === 'register' ? 'bg-sy-accent text-sy-bg' : 'text-white/50'}`}>Register</button></div><form onSubmit={submit} className="space-y-4 border border-sy-border bg-sy-card p-5 shadow-2xl sm:p-6">{mode === 'register' && <label className="block"><span className="mb-2 block text-xs font-bold text-white/70">Full name</span><div className="relative"><UserRound size={16} className="absolute left-3 top-3.5 text-white/35" /><input value={form.name} onChange={update('name')} required placeholder="Your name" className="h-11 w-full border border-sy-border bg-sy-panel pl-10 pr-3 text-sm text-white placeholder:text-white/30" /></div></label>}<label className="block"><span className="mb-2 block text-xs font-bold text-white/70">Workspace role</span><select value={role} onChange={(event) => setRole(event.target.value)} className="h-11 w-full border border-sy-border bg-sy-panel px-3 text-sm text-white">{Object.keys(roleCopy).map((key) => <option key={key} value={key}>{key[0].toUpperCase() + key.slice(1)} · {roleCopy[key]}</option>)}</select></label><label className="block"><span className="mb-2 block text-xs font-bold text-white/70">Email address</span><input type="email" value={form.email} onChange={update('email')} required placeholder="you@example.com" className="h-11 w-full border border-sy-border bg-sy-panel px-3 text-sm text-white placeholder:text-white/30" /></label><label className="block"><span className="mb-2 block text-xs font-bold text-white/70">Password</span><div className="relative"><LockKeyhole size={16} className="absolute left-3 top-3.5 text-white/35" /><input type="password" value={form.password} onChange={update('password')} required placeholder="••••••••" className="h-11 w-full border border-sy-border bg-sy-panel pl-10 pr-3 text-sm text-white placeholder:text-white/30" /></div></label>{error && <p role="alert" className="border border-red-300/30 bg-red-400/10 px-3 py-2 text-xs leading-5 text-red-100">{error}</p>}<button disabled={loading} className="flex min-h-12 w-full items-center justify-center gap-2 bg-sy-accent text-sm font-extrabold text-sy-bg transition hover:bg-white disabled:cursor-wait disabled:opacity-60">{loading ? 'Opening workspace…' : mode === 'login' ? 'Enter workspace' : 'Create workspace'} <ArrowRight size={16} /></button></form><div className="mt-5 border border-sy-border bg-sy-bg-soft p-4"><div className="flex items-center justify-between"><p className="sy-label">Quick demo accounts</p><CheckCircle2 size={15} className="text-sy-accent" /></div><div className="mt-3 grid gap-2 sm:grid-cols-2">{getDemoAccounts().map((account) => <button key={account.role} onClick={() => fillDemo(account)} className="flex items-center justify-between border border-sy-border px-3 py-2 text-left hover:border-sy-accent/50"><span><span className="block text-xs font-bold capitalize text-white">{account.role}</span><span className="block mt-0.5 font-mono text-[9px] text-white/35">{account.email}</span></span><span className="text-[10px] text-sy-accent">Use</span></button>)}</div></div><p className="mt-5 text-center text-xs text-white/35"><Link to="/" className="hover:text-white">Back to public site</Link></p></div></section></div></div>;
 }
