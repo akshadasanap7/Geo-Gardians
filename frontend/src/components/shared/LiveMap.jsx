@@ -67,12 +67,12 @@ export default function LiveMap({ tourists = [], zones = [], incidents = [], cen
         {incidents.filter((i) => i.status !== 'resolved').map((inc) => {
           if (!inc.location?.latitude) return null;
           return (
-            <CircleMarker key={inc.incidentId}
+            <CircleMarker key={inc.incidentId || inc._id}
               center={[inc.location.latitude, inc.location.longitude]}
               radius={14}
               pathOptions={{ color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.3, weight: 3, dashArray: '4 2' }}>
               <Popup>
-                <strong>🚨 {inc.type.toUpperCase()}</strong><br />
+                <strong>🚨 {(inc.source || inc.severity || 'SOS').toUpperCase()}</strong><br />
                 Tourist: {inc.touristName}<br />
                 Severity: {inc.severity}<br />
                 Status: {inc.status}
