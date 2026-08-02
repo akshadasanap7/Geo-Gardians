@@ -19,7 +19,7 @@ export default function AdminDashboard() {
         api.get('/dashboard'),
         api.get('/tourists'),
         api.get('/incidents'),
-        api.get('/geofences')
+        api.get('/zones')
       ]);
       setDashboard(d); setTourists(t); setIncidents(inc); setZones(z);
     } catch {}
@@ -28,21 +28,19 @@ export default function AdminDashboard() {
   useEffect(() => { load(); const id = setInterval(load, 20000); return () => clearInterval(id); }, [load]);
 
   async function deleteZone(id) {
-    await api.delete(`/geofences/${id}`);
+    await api.delete(`/zones/${id}`);
     load();
   }
 
   return (
     <Shell title="Admin Dashboard" icon="⚙️">
       {dashboard && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-6">
           {[
             { l: 'Total Tourists',   v: dashboard.activeTourists,    c: 'text-sy-accent' },
             { l: 'Emergencies',      v: dashboard.activeEmergencies, c: 'text-red-400' },
-            { l: 'Critical',         v: dashboard.criticalRisk,      c: 'text-red-400' },
-            { l: 'High Risk',        v: dashboard.highRisk,          c: 'text-amber-400' },
+            { l: 'High Risk',        v: dashboard.highRiskTourists,  c: 'text-amber-400' },
             { l: 'Safe',             v: dashboard.safeTourists,      c: 'text-emerald-400' },
-            { l: 'Offline',          v: dashboard.offlineTourists,   c: 'text-sy-muted' },
             { l: 'Weather Affected', v: dashboard.weatherAffected,   c: 'text-amber-400' },
           ].map((s) => (
             <div key={s.l} className="bg-sy-card border border-sy-border rounded-xl p-3 text-center">
@@ -64,15 +62,15 @@ export default function AdminDashboard() {
 
       {tab === 'overview' && (
         <div className="space-y-4">
-          <LiveMap tourists={dashboard?.touristLocations || []} zones={zones}
+          <LiveMap tourists={tourists} zones={zones}
             incidents={incidents.filter((i) => i.status !== 'resolved')} height="480px" />
-          {dashboard?.recentIncidents?.length > 0 && (
+          {incidents.filter((i) => i.status !== 'resolved').length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-sy-muted uppercase tracking-widest font-semibold">Recent Incidents</p>
-              {dashboard.recentIncidents.slice(0, 5).map((inc) => (
-                <div key={inc.incidentId || inc._id} className="bg-sy-card border border-sy-border rounded-xl p-3 flex items-center justify-between gap-4">
+              <p className="text-xs text-sy-muted uppercase tracking-widest font-semibold">Active Incidents</p>
+              {incidents.filter((i) => i.status !== 'resolved').slice(0, 5).map((inc) => (
+                <div key={inc.id || inc.incidentId} className="bg-sy-card border border-sy-border rounded-xl p-3 flex items-center justify-between gap-4">
                   <div>
-                    <span className={`font-bold text-xs uppercase ${severityColor(inc.severity)}`}>{inc.severity}</span>
+                    <span className={`font-bold text-xs uppercase ${severityColor((inc.severity || '').toLowerCase())}`}>{inc.severity}</span>
                     <span className="text-sy-text font-semibold ml-2 text-sm">{inc.touristName}</span>
                     <p className="text-xs text-sy-muted">{formatDateTime(inc.createdAt)}</p>
                   </div>
@@ -88,17 +86,17 @@ export default function AdminDashboard() {
         <div className="space-y-2">
           <p className="text-xs text-sy-muted mb-2">{tourists.length} registered tourists</p>
           {tourists.map((t) => (
-            <div key={t.touristId} className="bg-sy-card border border-sy-border rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap">
+            <div key={t.id || t.touristId} className="bg-sy-card border border-sy-border rounded-xl p-4 flex items-center justify-between gap-4 flex-wrap">
               <div>
                 <p className="font-semibold">{t.name}</p>
-                <p className="text-xs text-sy-muted font-mono">{t.touristId}</p>
+                <p className="text-xs text-sy-muted font-mono">{t.id || t.touristId}</p>
                 <p className="text-xs text-sy-muted">Destination: {t.destination}</p>
-                {t.lastLocation && (
-                  <p className="text-xs text-sy-muted">📍 {t.lastLocation.latitude?.toFixed(4)}, {t.lastLocation.longitude?.toFixed(4)}</p>
+                {(t.location || t.lastLocation) && (
+                  <p className="text-xs text-sy-muted">📍 {(t.location || t.lastLocation).latitude?.toFixed(4)}, {(t.location || t.lastLocation).longitude?.toFixed(4)}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <RiskBadge level={t.latestRiskLevel} score={t.latestRiskScore} />
+                <RiskBadge level={t.latestRiskLevel || t.riskLevel} score={t.latestRiskScore ?? t.riskScore} />
                 <span className="text-xs text-sy-muted">{statusLabel(t.status)}</span>
               </div>
             </div>
@@ -110,13 +108,13 @@ export default function AdminDashboard() {
         <div className="space-y-3">
           <p className="text-xs text-sy-muted mb-2">{incidents.length} total incidents</p>
           {incidents.map((inc) => (
-            <div key={inc.incidentId || inc._id} className="bg-sy-card border border-sy-border rounded-xl p-4">
+            <div key={inc.id || inc.incidentId} className="bg-sy-card border border-sy-border rounded-xl p-4">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`font-bold text-xs uppercase ${severityColor(inc.severity)}`}>{inc.severity}</span>
+                    <span className={`font-bold text-xs uppercase ${severityColor((inc.severity || '').toLowerCase())}`}>{inc.severity}</span>
                     <StatusBadge status={inc.status} />
-                    <span className="text-xs text-sy-muted font-mono">{inc.incidentId}</span>
+                    <span className="text-xs text-sy-muted font-mono">{inc.id || inc.incidentId}</span>
                   </div>
                   <p className="font-semibold">{inc.touristName}</p>
                   <p className="text-xs text-sy-muted">{inc.message}</p>
