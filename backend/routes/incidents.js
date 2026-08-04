@@ -5,8 +5,8 @@ const Geofence = require('../models/Geofence');
 const { calculateRisk } = require('../services/riskEngine');
 const { protect, authorize } = require('../middleware/auth');
 
-// POST /api/incidents/sos
-router.post('/sos', protect, async (req, res, next) => {
+// POST /api/incidents/sos — no auth required so offline/unauthenticated clients can still send SOS
+router.post('/sos', async (req, res, next) => {
   try {
     const { touristId, latitude, longitude, weather, movementSpeed, inactivityMins, clientId, message } = req.body;
 
@@ -122,8 +122,8 @@ router.patch('/:id', protect, authorize('admin','authority','responder'), async 
   } catch (err) { next(err); }
 });
 
-// POST /api/incidents/bulk — offline batch sync
-router.post('/bulk', protect, async (req, res, next) => {
+// POST /api/incidents/bulk — no auth required for offline batch sync
+router.post('/bulk', async (req, res, next) => {
   try {
     const { records } = req.body;
     const results = { synced: 0, duplicates: 0, failed: 0 };

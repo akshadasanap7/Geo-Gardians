@@ -6,8 +6,8 @@ const Incident = require('../models/Incident');
 const { calculateRisk } = require('../services/riskEngine');
 const { protect } = require('../middleware/auth');
 
-// POST /api/locations — single location update
-router.post('/', protect, async (req, res, next) => {
+// POST /api/locations — single location update (no auth so offline sync works without token)
+router.post('/', async (req, res, next) => {
   try {
     const { touristId, latitude, longitude, accuracy, speed, heading, weather, inactivityMins, clientId } = req.body;
 
@@ -71,8 +71,8 @@ router.post('/', protect, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// POST /api/locations/bulk — offline batch sync
-router.post('/bulk', protect, async (req, res, next) => {
+// POST /api/locations/bulk — offline batch sync (no auth required)
+router.post('/bulk', async (req, res, next) => {
   try {
     const { records } = req.body;
     if (!Array.isArray(records)) return res.status(400).json({ error: 'records must be an array' });
