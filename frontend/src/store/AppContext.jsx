@@ -7,7 +7,7 @@ import { createIncident, advanceIncident } from '../services/incidentService';
 import { getNextMovementPoint } from '../services/locationService';
 import { getPendingEvents, queuePendingEvent, syncPendingEvents } from '../services/syncService';
 import { findZone, getZoneMessage } from '../services/geofenceService';
-import { loginDemo, registerDemo } from '../services/authService';
+import { loginUser, signupTourist, saveSession, clearSession, getStoredUser } from '../services/authService';
 
 const STORAGE_KEY = 'safeyatra_demo_state';
 const AppContext = createContext(null);
@@ -18,7 +18,7 @@ function readSavedState() {
 
 const savedState = readSavedState();
 const initialState = {
-  user: savedState?.user || null,
+  user: savedState?.user || getStoredUser() || null,
   networkStatus: savedState?.networkStatus || 'online',
   pendingSync: getPendingEvents().length,
   tourists: savedState?.tourists || mockTourists,
@@ -64,15 +64,26 @@ export function AppProvider({ children }) {
   }, [state.user, state.networkStatus, state.tourists, state.incidents, state.selectedEntity, state.demo, state.lastSyncAt]);
 
   const login = useCallback(async (credentials) => {
-    const result = credentials.mode === 'register' ? registerDemo(credentials) : loginDemo(credentials);
-    dispatch({ type: 'LOGIN', user: result.user });
-    addToast(`Signed in as ${result.user.name}.`, 'success', 'Workspace ready');
-    return result.user;
+    let user;
+    if (credentials.mode === 'signup') {
+      const res = await signupTourist(credentials);
+      saveSession(res.token, res.user);
+      user = res.user;
+      addToast(`Welcome, ${user.name}! Your account is ready.`, 'success', 'Registration complete');
+    } else {
+      const res = await loginUser(credentials);
+      saveSession(res.token, res.user);
+      user = res.user;
+      addToast(`Signed in as ${user.name}.`, 'success', 'Workspace ready');
+    }
+    dispatch({ type: 'LOGIN', user });
+    return user;
   }, [addToast]);
 
   const logout = useCallback(() => {
+    clearSession();
     dispatch({ type: 'LOGOUT' });
-    addToast('Your demo session has been closed.', 'info', 'Signed out');
+    addToast('You have been signed out.', 'info', 'Signed out');
   }, [addToast]);
 
   const setNetworkStatus = useCallback((status) => dispatch({ type: 'SET_NETWORK', status }), []);

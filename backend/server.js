@@ -24,6 +24,7 @@ app.use((req, _res, next) => { req.io = io; next(); });
 
 // ── routes ────────────────────────────────────────────────────────────────────
 app.use('/api/auth',       require('./routes/auth'));
+app.use('/api/admin',      require('./routes/adminUsers'));
 app.use('/api/tourists',   require('./routes/tourists'));
 app.use('/api/locations',  require('./routes/locations'));
 app.use('/api/incidents',  require('./routes/incidents'));
