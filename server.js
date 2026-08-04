@@ -173,15 +173,27 @@ function generateCsrfToken() {
   return token;
 }
 
-const ALLOWED_ORIGIN = `http://localhost:${PORT}`;
+const ALLOWED_ORIGINS = [
+  `http://localhost:3000`,
+  `http://localhost:5173`,
+  'https://geo-gardians.netlify.app',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+const ALLOWED_ORIGIN = ALLOWED_ORIGINS[0]; // kept for CSRF header
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const app = express();
 app.use(express.json());
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token,Authorization');
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });

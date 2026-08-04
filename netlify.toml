@@ -1,13 +1,14 @@
 [build]
-  command = "echo 'No build needed'"
-  publish = "public"
+  base    = "frontend"
+  command = "npm install && npm run build"
+  publish = "frontend/dist"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [[redirects]]
   from   = "/api/*"
-  to     = "https://safeyatra-backend.onrender.com/api/:splat"
+  to     = "https://geo-gardians-1.onrender.com/api/:splat"
   status = 200
   force  = true
 
