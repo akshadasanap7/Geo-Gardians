@@ -427,7 +427,7 @@ app.post('/api/incidents/alert-escalation', (req, res) => {
   const tourists = loadJson(TOURISTS_FILE, []);
   const incidents = loadJson(INCIDENTS_FILE, []);
   const data = req.body || {};
-  const tourist = tourists.find((item) => item.id === data.touristId);
+  const tourist = tourists.find((item) => item.id === data.touristId || item.touristId === data.touristId);
   if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
   const incident = {
     id: `INC-${Date.now()}`,
@@ -475,7 +475,7 @@ app.post('/api/locations', (req, res) => {
 // PATCH /api/tourists/:id/journey — journey pause/start stub
 app.patch('/api/tourists/:id/journey', (req, res) => {
   const tourists = loadJson(TOURISTS_FILE, []);
-  const tourist = tourists.find((item) => item.id === req.params.id);
+  const tourist = tourists.find((item) => item.id === req.params.id || item.touristId === req.params.id);
   if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
   tourist.isJourneyActive = req.body.action === 'start';
   saveJson(TOURISTS_FILE, tourists);
