@@ -1,21 +1,23 @@
 const STYLES = {
-  detected:            'bg-red-900/40 text-red-400 border-red-700',
-  alerted:             'bg-orange-900/40 text-orange-400 border-orange-700',
-  acknowledged:        'bg-yellow-900/40 text-yellow-400 border-yellow-700',
-  'responder-assigned':'bg-blue-900/40 text-blue-400 border-blue-700',
-  'in-progress':       'bg-purple-900/40 text-purple-400 border-purple-700',
-  resolved:            'bg-emerald-900/40 text-emerald-400 border-emerald-700'
+  detected:             { bg:'rgba(239,68,68,0.12)',   color:'#EF4444', border:'rgba(239,68,68,0.25)'   },
+  alerted:              { bg:'rgba(249,115,22,0.12)',  color:'#F97316', border:'rgba(249,115,22,0.25)'  },
+  acknowledged:         { bg:'rgba(234,179,8,0.12)',   color:'#EAB308', border:'rgba(234,179,8,0.25)'   },
+  'responder-assigned': { bg:'rgba(59,130,246,0.12)',  color:'#3B82F6', border:'rgba(59,130,246,0.25)'  },
+  'in-progress':        { bg:'rgba(139,92,246,0.12)',  color:'#8B5CF6', border:'rgba(139,92,246,0.25)'  },
+  resolved:             { bg:'rgba(34,197,94,0.12)',   color:'#22C55E', border:'rgba(34,197,94,0.25)'   },
 };
 
 const LABELS = {
-  detected: 'Detected', alerted: 'Alerted', acknowledged: 'Acknowledged',
-  'responder-assigned': 'Responder Assigned', 'in-progress': 'In Progress', resolved: 'Resolved'
+  detected:'Detected', alerted:'Alerted', acknowledged:'Acknowledged',
+  'responder-assigned':'Assigned', 'in-progress':'In Progress', resolved:'Resolved',
 };
 
 export default function StatusBadge({ status }) {
-  const cls = STYLES[status] || 'bg-slate-800 text-slate-400 border-slate-600';
+  const s = STYLES[status] || { bg:'rgba(148,163,184,0.1)', color:'#94A3B8', border:'rgba(148,163,184,0.2)' };
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded-full border text-xs font-semibold ${cls}`}>
+    <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold"
+      style={{ background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
+      <span className="h-1.5 w-1.5 rounded-full" style={{ background: s.color }} />
       {LABELS[status] || status}
     </span>
   );
