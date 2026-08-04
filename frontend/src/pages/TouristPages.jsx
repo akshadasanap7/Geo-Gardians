@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Activity, ArrowRight, BadgeCheck, BellRing, CalendarDays, Check, ChevronRight, CircleHelp, CloudOff, Compass, Download, HeartPulse, LocateFixed, LockKeyhole, MapPinned, Navigation, Phone, Route, ShieldCheck, Siren, Smartphone, Sparkles, Timer, TriangleAlert, UserRound, UsersRound, Wifi } from 'lucide-react';
+import { Activity, ArrowRight, BadgeCheck, BellRing, BrainCircuit, CalendarDays, Check, ChevronRight, CircleHelp, CloudOff, Compass, Download, HeartPulse, LocateFixed, LockKeyhole, MapPinned, Navigation, Phone, Radio, Route, ShieldCheck, Siren, Smartphone, Sparkles, Timer, TriangleAlert, UserRound, UsersRound, Wifi } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Shell from '../components/shared/Shell';
 import MapSurface from '../components/shared/MapSurface';

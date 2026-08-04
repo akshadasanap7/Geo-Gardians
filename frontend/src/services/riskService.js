@@ -1,7 +1,7 @@
 const LEVELS = [
   { min: 80, label: 'CRITICAL' },
   { min: 60, label: 'HIGH' },
-  { min: 35, label: 'CAUTION' },
+  { min: 35, label: 'MEDIUM' },
   { min: 0, label: 'SAFE' }
 ];
 
