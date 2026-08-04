@@ -523,16 +523,20 @@ app.patch('/api/incidents/:id', (req, res) => {
 app.get('/api/dashboard', (req, res) => {
   const tourists = loadJson(TOURISTS_FILE, []);
   const incidents = loadJson(INCIDENTS_FILE, []);
-  const highRiskTourists = tourists.filter((tourist) => tourist.latestRiskLevel === 'High' || tourist.status === 'emergency');
-
+  const criticalRisk    = tourists.filter((t) => t.latestRiskLevel === 'High' && t.status === 'emergency').length;
+  const highRiskCount   = tourists.filter((t) => t.latestRiskLevel === 'High' || t.status === 'emergency').length;
+  const offlineTourists = tourists.filter((t) => t.status === 'offline').length;
   const weatherAffected = tourists.filter((t) => t.lastWeather && ['storm', 'flood', 'landslide'].includes(t.lastWeather)).length;
   res.json({
-    activeTourists: tourists.length,
-    activeEmergencies: incidents.filter((incident) => incident.status === 'active').length,
-    highRiskTourists: highRiskTourists.length,
-    safeTourists: tourists.filter((tourist) => tourist.status === 'safe').length,
+    activeTourists:    tourists.length,
+    activeEmergencies: incidents.filter((i) => i.status === 'active' || i.status === 'detected').length,
+    criticalRisk,
+    highRisk:          highRiskCount,
+    highRiskTourists:  highRiskCount,
+    offlineTourists,
+    safeTourists:      tourists.filter((t) => t.status === 'safe').length,
     weatherAffected,
-    latestIncident: incidents[0] || null
+    latestIncident:    incidents[0] || null
   });
 });
 
