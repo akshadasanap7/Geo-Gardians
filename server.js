@@ -382,6 +382,106 @@ app.post('/api/sos', (req, res) => {
   res.status(201).json({ incident, tourist });
 });
 
+// alias used by full-stack frontend services
+app.post('/api/incidents/sos', (req, res) => {
+  req.url = '/api/sos';
+  const data = req.body || {};
+  // remap touristId field (frontend sends touristId)
+  const tourists = loadJson(TOURISTS_FILE, []);
+  const incidents = loadJson(INCIDENTS_FILE, []);
+  const tourist = tourists.find((item) => item.id === data.touristId);
+  if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
+  const zones = loadJson(ZONES_FILE, []);
+  const risk = calculateRiskScore({
+    latitude: data.latitude || tourist.location.latitude,
+    longitude: data.longitude || tourist.location.longitude,
+    weather: data.weather || 'clear',
+    movementSpeed: data.movementSpeed || 0,
+    inactivityHours: data.inactivityHours || 0,
+    zones
+  });
+  const incident = {
+    id: `INC-${Date.now()}`,
+    touristId: tourist.id,
+    touristName: tourist.name,
+    status: 'detected',
+    severity: risk.score >= 75 ? 'critical' : 'high',
+    location: { latitude: data.latitude || tourist.location.latitude, longitude: data.longitude || tourist.location.longitude, timestamp: getTimestamp() },
+    message: data.message || 'SOS triggered.',
+    riskScore: risk.score,
+    riskLevel: getRiskLevel(risk.score),
+    zoneInfo: createZoneSummary(risk.matchedZone),
+    clientId: data.clientId || null,
+    createdAt: getTimestamp()
+  };
+  incidents.unshift(incident);
+  tourist.status = 'emergency';
+  tourist.lastSOS = getTimestamp();
+  saveJson(INCIDENTS_FILE, incidents);
+  saveJson(TOURISTS_FILE, tourists);
+  res.status(201).json({ incident });
+});
+
+// POST /api/incidents/alert-escalation — auto-escalation stub
+app.post('/api/incidents/alert-escalation', (req, res) => {
+  const tourists = loadJson(TOURISTS_FILE, []);
+  const incidents = loadJson(INCIDENTS_FILE, []);
+  const data = req.body || {};
+  const tourist = tourists.find((item) => item.id === data.touristId);
+  if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
+  const incident = {
+    id: `INC-${Date.now()}`,
+    touristId: tourist.id,
+    touristName: tourist.name,
+    status: 'detected',
+    severity: data.riskLevel === 'CRITICAL' ? 'critical' : 'high',
+    location: tourist.location,
+    riskScore: tourist.latestRiskScore || 0,
+    riskLevel: data.riskLevel || 'HIGH',
+    message: data.message || 'Tourist did not respond to HIGH RISK alert.',
+    createdAt: getTimestamp()
+  };
+  incidents.unshift(incident);
+  tourist.status = 'high-risk';
+  saveJson(INCIDENTS_FILE, incidents);
+  saveJson(TOURISTS_FILE, tourists);
+  res.status(201).json({ incident });
+});
+
+// POST /api/locations — location update (used by syncEngine)
+app.post('/api/locations', (req, res) => {
+  const data = req.body || {};
+  const tourists = loadJson(TOURISTS_FILE, []);
+  const tourist = tourists.find((item) => item.id === data.touristId);
+  if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
+  const zones = loadJson(ZONES_FILE, []);
+  const risk = calculateRiskScore({
+    latitude: data.latitude || tourist.location.latitude,
+    longitude: data.longitude || tourist.location.longitude,
+    weather: data.weather || 'clear',
+    movementSpeed: data.speed || 0,
+    inactivityHours: (data.inactivityMins || 0) / 60,
+    zones
+  });
+  tourist.location = { latitude: data.latitude, longitude: data.longitude, timestamp: getTimestamp() };
+  tourist.latestRiskScore = risk.score;
+  tourist.latestRiskLevel = getRiskLevel(risk.score);
+  tourist.status = risk.score >= 75 ? 'high-risk' : risk.score >= 40 ? 'monitoring' : 'safe';
+  tourist.zoneInfo = createZoneSummary(risk.matchedZone);
+  saveJson(TOURISTS_FILE, tourists);
+  res.status(201).json({ location: data, risk: { score: risk.score, level: getRiskLevel(risk.score), factors: risk.factors } });
+});
+
+// PATCH /api/tourists/:id/journey — journey pause/start stub
+app.patch('/api/tourists/:id/journey', (req, res) => {
+  const tourists = loadJson(TOURISTS_FILE, []);
+  const tourist = tourists.find((item) => item.id === req.params.id);
+  if (!tourist) return res.status(404).json({ error: 'Tourist not found' });
+  tourist.isJourneyActive = req.body.action === 'start';
+  saveJson(TOURISTS_FILE, tourists);
+  res.json({ isJourneyActive: tourist.isJourneyActive });
+});
+
 app.post('/api/verify', (req, res) => {
   const tourists = loadJson(TOURISTS_FILE, []);
   const data = req.body || {};
