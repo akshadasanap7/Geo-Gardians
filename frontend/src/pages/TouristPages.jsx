@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Activity, ArrowRight, BadgeCheck, BellRing, BrainCircuit, CalendarDays, Check, ChevronRight, CircleHelp, CloudOff, Compass, Download, HeartPulse, LocateFixed, LockKeyhole, MapPinned, Navigation, Phone, Radio, Route, ShieldCheck, Siren, Smartphone, Sparkles, Timer, TriangleAlert, UserRound, UsersRound, Wifi } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Shell from '../components/shared/Shell';
@@ -62,30 +62,37 @@ export function TouristEmergency() {
 export function TouristProfile() {
   const { state, dispatch, addToast } = useApp();
   const user = state.user;
-
-  // find tourist record matching logged-in user, fallback to SY-1001 for demo
-  const tourist = state.tourists.find((t) => t.userId === user?.id || t.touristId === user?.touristId) || state.tourists[0];
+  const tourist = state.tourists.find((t) => t.userId === user?.id) || state.tourists[0];
 
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    name:             tourist.name,
-    phone:            tourist.phone            || '',
-    emergencyContact: tourist.emergencyContact || '',
+    name:             user?.name             || tourist.name,
+    phone:            user?.phone            || tourist.phone            || '',
+    emergencyContact: tourist.emergencyContact || user?.phone            || '',
   });
 
+  // keep form in sync if user/tourist changes (e.g. after login)
+  useEffect(() => {
+    setForm({
+      name:             user?.name             || tourist.name,
+      phone:            user?.phone            || tourist.phone            || '',
+      emergencyContact: tourist.emergencyContact || user?.phone            || '',
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, tourist.touristId]);
+
   function save() {
-    dispatch({ type: 'UPDATE_TOURIST', id: tourist.touristId, patch: {
-      name:             form.name,
-      phone:            form.phone,
-      emergencyContact: form.emergencyContact,
-    }});
-    // keep auth user in sync so Shell topbar name updates too
-    dispatch({ type: 'UPDATE_USER', patch: { name: form.name, phone: form.phone } });
-    addToast('Profile updated. Emergency contact is ready for responders.', 'success', 'Profile saved');
+    const patch = { name: form.name, phone: form.phone, emergencyContact: form.emergencyContact };
+    dispatch({ type: 'UPDATE_TOURIST', id: tourist.touristId, patch });
+    dispatch({ type: 'UPDATE_USER',    patch: { name: form.name, phone: form.phone } });
+    // persist updated user to localStorage so it survives reload
+    const updatedUser = { ...user, name: form.name, phone: form.phone };
+    localStorage.setItem('sy_user', JSON.stringify(updatedUser));
+    addToast('Profile saved. Your contact details are ready for responders.', 'success', 'Profile saved');
     setEditing(false);
   }
 
-  const displayName = user?.name || tourist.name;
+  const displayName = form.name || user?.name || tourist.name;
   const initials    = displayName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
@@ -95,9 +102,9 @@ export function TouristProfile() {
         title="The details that help responders help you."
         description="Keep emergency information current. Only the minimum required details are surfaced during a verified response."
         action={
-          <button onClick={() => setEditing((e) => !e)}
+          <button onClick={() => { setEditing((e) => !e); }}
             className="inline-flex min-h-11 items-center gap-2 border border-sy-border px-4 text-xs font-bold text-white/70 hover:border-sy-accent/40 hover:text-white">
-            <UserRound size={15} /> {editing ? 'Cancel edit' : 'Edit profile'}
+            <UserRound size={15} /> {editing ? 'Cancel' : 'Edit profile'}
           </button>
         }
       />
@@ -109,14 +116,14 @@ export function TouristProfile() {
             </div>
             <div>
               <p className="text-lg font-extrabold text-white">{displayName}</p>
-              <p className="mt-0.5 text-xs text-white/40">{user?.email || ''}</p>
+              <p className="mt-0.5 text-xs text-white/40">{user?.email || tourist.email || ''}</p>
               <p className="mt-1 font-mono text-xs text-white/45">{tourist.touristId}</p>
             </div>
           </div>
           <div className="mt-2">
-            <DataRow label="Mobile"            value={tourist.phone            || '—'} />
-            <DataRow label="Emergency contact" value={tourist.emergencyContact || '—'} />
-            <DataRow label="Verification"      value="Verified ✓" valueClass="text-sy-success" />
+            <DataRow label="Mobile"            value={form.phone            || '—'} />
+            <DataRow label="Emergency contact" value={form.emergencyContact || '—'} />
+            <DataRow label="Email"             value={user?.email          || '—'} />
             <DataRow label="Role"              value={user?.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Tourist'} />
           </div>
         </Panel>
@@ -125,31 +132,35 @@ export function TouristProfile() {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block">
               <span className="mb-2 block text-xs font-bold text-white/60">Full name</span>
-              <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              <input value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 disabled={!editing}
                 className="h-11 w-full border border-sy-border bg-sy-panel px-3 text-sm text-white disabled:opacity-50" />
             </label>
             <label className="block">
               <span className="mb-2 block text-xs font-bold text-white/60">Phone</span>
-              <input value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+              <input value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                 disabled={!editing}
+                placeholder="+91 XXXXX XXXXX"
                 className="h-11 w-full border border-sy-border bg-sy-panel px-3 text-sm text-white disabled:opacity-50" />
             </label>
             <label className="block sm:col-span-2">
-              <span className="mb-2 block text-xs font-bold text-white/60">Emergency contact</span>
-              <input value={form.emergencyContact} onChange={(e) => setForm((f) => ({ ...f, emergencyContact: e.target.value }))}
+              <span className="mb-2 block text-xs font-bold text-white/60">Emergency contact number</span>
+              <input value={form.emergencyContact}
+                onChange={(e) => setForm((f) => ({ ...f, emergencyContact: e.target.value }))}
                 disabled={!editing}
+                placeholder="+91 XXXXX XXXXX"
                 className="h-11 w-full border border-sy-border bg-sy-panel px-3 text-sm text-white disabled:opacity-50" />
             </label>
           </div>
-          {editing && (
+          {editing ? (
             <button onClick={save}
-              className="mt-4 min-h-11 bg-sy-accent px-4 text-xs font-extrabold text-sy-bg hover:bg-white">
+              className="mt-4 min-h-11 bg-sy-accent px-6 text-xs font-extrabold text-sy-bg hover:bg-white">
               Save changes
             </button>
-          )}
-          {!editing && (
-            <p className="mt-4 text-xs text-white/35">Click "Edit profile" to update your details.</p>
+          ) : (
+            <p className="mt-4 text-xs text-white/35">Click “Edit profile” to update your details.</p>
           )}
         </Panel>
       </div>
