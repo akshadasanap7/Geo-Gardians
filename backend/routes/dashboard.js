@@ -11,11 +11,15 @@ router.get('/', protect, authorize('admin','authority','responder'), async (req,
       Incident.find().sort({ createdAt: -1 }).limit(20)
     ]);
 
+    const activeEmergencies = incidents.filter((i) => i.status !== 'resolved').length;
+    const highRiskCount      = tourists.filter((t) => t.latestRiskLevel === 'HIGH').length;
+
     const stats = {
       activeTourists:    tourists.length,
-      activeEmergencies: incidents.filter((i) => i.status !== 'resolved').length,
+      activeEmergencies,
       criticalRisk:      tourists.filter((t) => t.latestRiskLevel === 'CRITICAL').length,
-      highRisk:          tourists.filter((t) => t.latestRiskLevel === 'HIGH').length,
+      highRisk:          highRiskCount,
+      highRiskTourists:  highRiskCount,   // alias used by AdminDashboard.jsx
       safeTourists:      tourists.filter((t) => t.status === 'safe').length,
       offlineTourists:   tourists.filter((t) => t.status === 'offline').length,
       weatherAffected:   tourists.filter((t) => ['storm','flood','landslide'].includes(t.lastWeather)).length,

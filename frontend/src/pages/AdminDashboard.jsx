@@ -19,9 +19,9 @@ export default function AdminDashboard() {
         api.get('/dashboard'),
         api.get('/tourists'),
         api.get('/incidents'),
-        api.get('/zones')
+        api.get('/geofences')
       ]);
-      setDashboard(d); setTourists(t); setIncidents(inc); setZones(z);
+      setDashboard(d ?? {}); setTourists(t ?? []); setIncidents(inc ?? []); setZones(z ?? []);
     } catch {}
   }, []);
 
@@ -34,22 +34,20 @@ export default function AdminDashboard() {
 
   return (
     <Shell title="Admin Dashboard" icon="⚙️">
-      {dashboard && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-6">
-          {[
-            { l: 'Total Tourists',   v: dashboard.activeTourists,    c: 'text-sy-accent' },
-            { l: 'Emergencies',      v: dashboard.activeEmergencies, c: 'text-red-400' },
-            { l: 'High Risk',        v: dashboard.highRiskTourists,  c: 'text-amber-400' },
-            { l: 'Safe',             v: dashboard.safeTourists,      c: 'text-emerald-400' },
-            { l: 'Weather Affected', v: dashboard.weatherAffected,   c: 'text-amber-400' },
-          ].map((s) => (
-            <div key={s.l} className="bg-sy-card border border-sy-border rounded-xl p-3 text-center">
-              <p className={`text-2xl font-black ${s.c}`}>{s.v ?? 0}</p>
-              <p className="text-[10px] text-sy-muted mt-0.5 leading-tight">{s.l}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-6">
+        {[
+          { l: 'Total Tourists',   v: dashboard?.activeTourists,    c: 'text-sy-accent' },
+          { l: 'Emergencies',      v: dashboard?.activeEmergencies, c: 'text-red-400' },
+          { l: 'High Risk',        v: dashboard?.highRiskTourists,  c: 'text-amber-400' },
+          { l: 'Safe',             v: dashboard?.safeTourists,      c: 'text-emerald-400' },
+          { l: 'Weather Affected', v: dashboard?.weatherAffected,   c: 'text-amber-400' },
+        ].map((s) => (
+          <div key={s.l} className="bg-sy-card border border-sy-border rounded-xl p-3 text-center">
+            <p className={`text-2xl font-black ${s.c}`}>{s.v ?? 0}</p>
+            <p className="text-[10px] text-sy-muted mt-0.5 leading-tight">{s.l}</p>
+          </div>
+        ))}
+      </div>
 
       <div className="flex gap-2 mb-4 flex-wrap">
         {[['overview','📊 Overview'],['tourists','👥 Tourists'],['incidents','🚨 Incidents'],['zones','📍 Zones']].map(([k,l]) => (

@@ -28,6 +28,7 @@ app.use('/api/tourists',   require('./routes/tourists'));
 app.use('/api/locations',  require('./routes/locations'));
 app.use('/api/incidents',  require('./routes/incidents'));
 app.use('/api/geofences',  require('./routes/geofences'));
+app.use('/api/zones',      require('./routes/geofences'));  // alias for frontend /zones calls
 app.use('/api/dashboard',  require('./routes/dashboard'));
 app.use('/api/verify',     require('./routes/verify'));
 app.use('/api/sync',       require('./routes/sync'));
