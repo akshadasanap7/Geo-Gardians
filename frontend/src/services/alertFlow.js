@@ -22,10 +22,8 @@ export async function startAlertFlow({ tourist, riskLevel, riskFactors, onStateC
 
   return {
     // call this if tourist taps "I'm Safe"
-    markSafe: async () => {
+    markSafe: () => {
       clearInterval(timer);
-      // non-critical — mark safe locally even if server call fails
-      api.patch(`/tourists/${tourist.touristId}/journey`, { action: 'pause' }).catch(() => {});
       onStateChange?.({ phase: 'safe' });
     },
     cancel: () => clearInterval(timer)
