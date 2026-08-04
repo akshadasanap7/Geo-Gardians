@@ -30,10 +30,49 @@ const initialState = {
   lastSyncAt: savedState?.lastSyncAt || '08:42 UTC'
 };
 
+function buildTouristFromUser(user) {
+  const initials = user.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  return {
+    touristId:        `SY-${user.id?.slice(-6)?.toUpperCase() || 'USER01'}`,
+    userId:           user.id,
+    name:             user.name,
+    initials,
+    phone:            user.phone || '',
+    emergencyContact: user.phone || '',
+    email:            user.email,
+    destination:      'My Journey',
+    riskScore:        0,
+    riskLevel:        'SAFE',
+    status:           'journey-active',
+    isOnline:         true,
+    lastSeen:         'Just now',
+    location:         { latitude: 20.0059, longitude: 73.7897 },
+    zoneName:         'Safe Zone',
+    zoneType:         'safe',
+    journey:          'My active journey',
+    journeyProgress:  0,
+    verified:         true,
+    lastCheckIn:      new Date().toISOString().slice(11, 16) + ' UTC',
+    digitalId:        `SY-2026-${(user.id || 'DEMO').slice(-6).toUpperCase()}`,
+    qrCode:           `SY-${(user.id || 'DEMO').slice(-6).toUpperCase()}`,
+  };
+}
+
 function reducer(state, action) {
   switch (action.type) {
-    case 'LOGIN': return { ...state, user: action.user };
+    case 'LOGIN': {
+      // upsert a tourist record for this user so all tourist pages show their data
+      const existing = state.tourists.find((t) => t.userId === action.user.id);
+      const myTourist = existing
+        ? { ...existing, name: action.user.name, phone: action.user.phone || existing.phone, email: action.user.email }
+        : buildTouristFromUser(action.user);
+      const tourists = existing
+        ? state.tourists.map((t) => t.userId === action.user.id ? myTourist : t)
+        : [myTourist, ...state.tourists];
+      return { ...state, user: action.user, tourists, selectedEntity: myTourist.touristId };
+    }
     case 'LOGOUT': return { ...state, user: null };
+    case 'UPDATE_USER': return { ...state, user: { ...state.user, ...action.patch } };
     case 'SET_NETWORK': return { ...state, networkStatus: action.status };
     case 'SET_PENDING': return { ...state, pendingSync: action.count };
     case 'SET_DEMO': return { ...state, demo: { ...state.demo, ...action.patch } };
@@ -106,8 +145,9 @@ export function AppProvider({ children }) {
   }, [addToast]);
 
   const updatePrimaryTourist = useCallback((patch) => {
-    dispatch({ type: 'UPDATE_TOURIST', id: primaryTourist.touristId, patch });
-  }, []);
+    const myTourist = state.tourists.find((t) => t.userId === state.user?.id) || state.tourists[0];
+    dispatch({ type: 'UPDATE_TOURIST', id: myTourist.touristId, patch });
+  }, [state.tourists, state.user]);
 
   const simulateMovement = useCallback(() => {
     const nextIndex = (state.demo.routeIndex + 1) % 5;
